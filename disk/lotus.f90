@@ -12,7 +12,7 @@ program Disk
   !
   ! -- numerical parameters
     real,parameter  :: C=32           ! resolution (pnts per chord)
-    real,parameter  :: Re=50
+    real,parameter  :: Re=100
     real,parameter  :: U=1
     real            :: dr=1+sqrt(3.)
     integer         :: n(3)            ! number of points

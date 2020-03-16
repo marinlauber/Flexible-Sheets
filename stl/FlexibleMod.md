@@ -61,7 +61,7 @@ subroutine sphere(geom)
 
 end subroutine sphere
 ```
-We now have a __subroutine__ to initialize the geometry for reasons that will not be detailed. The geom is initialzed ion the main part of the code as
+We now have a __subroutine__ to initialize the geometry for reasons that will not be detailed. The geom is initialzed in the main part of the code as
 ```fortran
 type(flexBody) :: geom
 
@@ -87,4 +87,4 @@ do while(flow%time<finish)
 
 end do
 ```
-The main loop of the standard way would be exactly the same, without the `call geom%writePoints(...)` call.
+The main loop using the standard body type would be exactly the same, without the `call geom%writePoints(...)` call.
