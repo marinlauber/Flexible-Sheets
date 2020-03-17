@@ -11,9 +11,10 @@ program Disk
     implicit none
   !
   ! -- numerical parameters
-    real,parameter  :: C=32           ! resolution (pnts per chord)
+    real,parameter  :: C=16           ! resolution (pnts per chord)
     real,parameter  :: Re=50
-    real,parameter  :: U=1
+    real,parameter  :: U0=0
+    real,parameter  :: a=1
     real            :: dr=1+sqrt(3.)
     integer         :: n(3)            ! number of points
   ! -- MPI utils
@@ -39,7 +40,7 @@ program Disk
     if(root) print *,'Setting up the grid, body and fluid'
     if(root) print *,'-----------------------------------'
     n = composite(C*(/4,4,4/), prnt=root)
-    call xg(1)%stretch(n(1), -6*C, -2*C, 2*C, 6*C, h_min=2., h_max=12.,prnt=root)
+    call xg(1)%stretch(n(1), -6*C, -2.5*C, 2.5*C, 6*C, h_min=2., h_max=12.,prnt=root)
     call xg(2)%stretch(n(2), -6*C, -2*C, 2*C, 6*C, h_min=2.,prnt=root)
     call xg(3)%stretch(n(3), -6*C, -2*C, 2*C, 6*C, h_min=2.,prnt=root)
   
@@ -51,14 +52,16 @@ program Disk
     if(root) print *,'-----------------------------------'
     if(root) print *,' -t- , -dt- '
   
-    do while (flow%time<2*U*C)
+    do while (flow%time<C)
       call geom%update(flow%time+flow%dt)
       call flow%update(geom) ! update N-S
       pforce = -2.*geom%pforce(flow%pressure)/C
       vforce = 2.*Re*geom%vforce(flow%velocity)
       if(root) write(9,'(f10.4,f8.4,6e16.8)') flow%time/C,flow%dt,pforce,vforce
       if(mod(flow%time,0.1*C)<flow%dt) then
-        if(root) print '(f6.1,",",f6.3)',flow%time/C,flow%dt
+        if(root) print '(f6.2,",",f6.3)',flow%time/C,flow%dt
+        if(root) print '(f6.3)',(y(real(flow%time+0.01,8))-y(real(flow%time-0.01,8)))/0.02
+        if(root) print '(f15.8)',y(real(flow%time,8))
         call display(flow%velocity%vorticity_Z(), 'out_vort', lim = 20./C)
         call flow%write(geom)
       end if
@@ -72,7 +75,7 @@ program Disk
 
     real(8) pure function y(t)
       real(8),intent(in) :: t
-      y = C-U*t
+      y = 0.5*a*t**2/C + U0*(t/C) - 0.5*C
     end function y
     type(body) function disc(D)
       real,intent(in) :: D
