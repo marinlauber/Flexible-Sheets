@@ -1,4 +1,4 @@
-program sphere_stl
+program globe_stl
   use flexMod,    only: flexBody
   use fluidMod,   only: fluid
   use mympiMod,   only: init_mympi,mympi_end,mympi_rank
@@ -29,7 +29,6 @@ program sphere_stl
 
 ! build geometry
   call init_body(geom)
-  ! call geom%init(fname='../sphere.stl',s=D*(/.005,.005,.005/))
   call flow%init(n/b,geom,V=(/1.,0.,0./),nu=D/Re)
 !
   if(root) print *,'Starting time update loop'
@@ -41,10 +40,9 @@ program sphere_stl
     call flow%update(geom)
     write(9,'(f10.4,f8.4,3e16.8)') flow%time/D,flow%dt, 2.*geom%pforce(flow%pressure)/(pi*D**2/4.)
     if(mod(flow%time,0.1*D)<flow%dt) then
-      if(root) then
-        print '(f6.1,",",f6.3)',flow%time/D,flow%dt
-        call geom%writePoints(flow%pressure,flow%time)
-      end if
+      if(root) print '(f6.1,",",f6.3)',flow%time/D,flow%dt
+      ! this writes the points to the vtp file
+      call geom%writePoints(flow%pressure,flow%time)
       call flow%write(geom)
       call display(flow%velocity%vorticity_Z(),'out_vort',lim=20./D)
     end if
@@ -63,18 +61,17 @@ contains
   end function y
   
   subroutine init_body(geom)
-    ! use geom_shape
     class(flexBody),intent(inout) :: geom
-    class(model),pointer :: boule_model
+    class(model),pointer :: globe
     type(stlth),pointer :: ptr
     type(set) :: sets
     type(model_info) :: mod_info
     mod_info%file = '../sphere.stl'
-    mod_info%s = 0.5*D*(/.01,.01,.01/) ! .stl file is a sphere with D=100
-    call model_init(mod_info, boule_model, ptr)
-    sets = boule_model
+    mod_info%s = 0.5*D*(/.01,.01,.01/) ! .stl file is a globe with D=100
+    call model_init_ptr(mod_info, globe, ptr)
+    sets = globe
     geom = sets.map.init_rigid(2,y)
     geom%srf => ptr
   end subroutine init_body
 
-end program sphere_stl
+end program globe_stl
