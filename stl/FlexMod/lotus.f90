@@ -1,5 +1,5 @@
 program globe_stl
-  use flexMod,    only: flexBody
+  use BodyMod,    only: body
   use fluidMod,   only: fluid
   use mympiMod,   only: init_mympi,mympi_end,mympi_rank
   use gridMod,    only: xg
@@ -15,7 +15,7 @@ program globe_stl
   integer :: b(3) = (/1,1,1/)     ! MPI blocks (product must equal n_procs)
   logical :: root                 ! root processor
   type(fluid) :: flow
-  type(flexBody) :: geom
+  type(body) :: geom
 !
 ! -- Initialize MPI (if MPI is OFF, b is set to 1)
   call init_mympi(3,set_blocks=b)
@@ -41,7 +41,6 @@ program globe_stl
     write(9,'(f10.4,f8.4,3e16.8)') flow%time/D,flow%dt, 2.*geom%pforce(flow%pressure)/(pi*D**2/4.)
     if(mod(flow%time,0.1*D)<flow%dt) then
       if(root) print '(f6.1,",",f6.3)',flow%time/D,flow%dt
-      ! this writes the points to the vtp file
       call geom%writePoints(flow%pressure,flow%time)
       call flow%write(geom)
       call display(flow%velocity%vorticity_Z(),'out_vort',lim=20./D)
@@ -61,7 +60,7 @@ contains
   end function y
   
   subroutine init_body(geom)
-    class(flexBody),intent(inout) :: geom
+    class(body),intent(inout) :: geom
     class(model),pointer :: globe
     type(stlth),pointer :: ptr
     type(set) :: sets

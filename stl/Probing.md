@@ -1,24 +1,26 @@
-# Lotus Flexible Module
+# Lotus Probing Fields
 
-#### (See Lotus/solver/oop/flexible.f90)
+#### (See Lotus/solver/oop/body.f90)
 
-This module extends the standard `type(body)` for flexible bodies. This is also the module you want to use to probe data points on the surface of an `.stl`  geometry. To use this module you need to import it instead of `bodyMod` using
-
-```fortran
-use flexMod, only: flexBody
-```
-and then create a geometry based on this new body type
+The updated body type allows to probe surface values of scalr fields on the body if this one has been defined based on an `.stl` file. To build it, we import the body module as usual
 
 ```fortran
-type(flexBody) :: geom
+use bodyMod, only: body
+```
+and then create a geometry based on this body type
+
+```fortran
+type(body) :: geom
 ```
 
-## The standard way
+## The standard way (no probing)
 
-The main difference between this module and the standard `body` is the wat you initialize a geometry based on an `.stl` file. The standard way of doing this is to have a function of with the following structure
+The standard way to define a body based on a `.stl` file is to write a function that reads-in the deisred file, and build the geometry based on this. This method will work if you do not require the `.stl` nodes (actually facet centroids) to be stored to be used later when probing fields.
 ```fortran
 type(set) function sphere(R)
+
     use geom_shape
+
     real,intent(in) :: R
     type(model_info) :: mod_info
 
@@ -42,8 +44,10 @@ geom = sphere(0.5*D).map.init_rigid(2,y)
 The way you have to initialize the geometry if you want to be able to probe nodal values of the flow on the body is as follows.
 ```fortran
 subroutine sphere(geom)
+
     use geom_shape
-    class(flexBody),intent(inout) :: geom
+
+    class(body),intent(inout) :: geom
     class(model),pointer :: sphere_model
     type(stlth),pointer :: ptr
     type(set) :: sets
@@ -61,9 +65,9 @@ subroutine sphere(geom)
 
 end subroutine sphere
 ```
-We now have a __subroutine__ to initialize the geometry for reasons that will not be detailed. The geom is initialzed in the main part of the code as
+We now have to use a __subroutine__ (`model_init_ptr`) to initialize the geometry because in addition to returning a `model` we also need it to return a pointer to the stl facets (the `ptr` in this case). We can then assign this pointer to the body and apply mapping on the body. The geom is initialzed in the main part of the code as
 ```fortran
-type(flexBody) :: geom
+type(body) :: geom
 
 call sphere(geom)
 ```

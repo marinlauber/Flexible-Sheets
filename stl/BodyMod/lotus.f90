@@ -41,6 +41,7 @@ program globe_stl
     write(9,'(f10.4,f8.4,3e16.8)') flow%time/D,flow%dt, 2.*geom%pforce(flow%pressure)/(pi*D**2/4.)
     if(mod(flow%time,0.1*D)<flow%dt) then
       if(root) print '(f6.1,",",f6.3)',flow%time/D,flow%dt
+      ! call geom%writePoints(flow%pressure,flow%time)
       call flow%write(geom)
       call display(flow%velocity%vorticity_Z(),'out_vort',lim=20./D)
     end if
