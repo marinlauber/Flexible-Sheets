@@ -91,4 +91,4 @@ do while(flow%time<finish)
 
 end do
 ```
-The main loop using the standard body type would be exactly the same, without the `call geom%writePoints(...)` call.
+The main loop using the standard body type would be exactly the same, without the `call geom%writePoints(...)` call. The `geom%writePoints(...)` subroutine can also write to `.csv` files instead of the standard `vtp`. To do so just add the falg `csv=.true.` in the subroutine call (this only writes the specified scalar field, and not the normals at in the `vtp`). 
