@@ -31,4 +31,6 @@
 *.out
 *.app
 
-1D-Channel/.ipynb_checkpoints/
+# ignore those folders
+1D-Piston/.ipynb_checkpoints
+1D-Piston/__pycache__
