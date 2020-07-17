@@ -35,7 +35,7 @@ def grad(f, dx=1):
     return grad
 
 
-def build_pressure_mat(beta, sigma, dx):
+def build_pressure_mat(beta, sigma, dx, show=False):
     # lower diagonals are just the beta coefficients
     L = sparse.diags([beta[1:],0,beta[1:]],[-1,0,1],shape=(len(sigma),len(sigma))).toarray()
     L[0,-1] = beta[0]; L[-1,0] = beta[-1]
@@ -47,21 +47,26 @@ def build_pressure_mat(beta, sigma, dx):
     # sclae by grid size
     L *= dx**(-2)
 
+    if show:
+        p = plt.imshow(abs(L),cmap='binary')
+        plt.colorbar(p)
+        plt.show()
+
     return L
 
 
-def solve_pressure(beta, sigma, dx=1, Np=5000):
+def solve_pressure(beta, sigma, dx=1, verbose=False):
 
-    # biuld pressure mat
+    # build pressure mat
     L = build_pressure_mat(beta, sigma, dx)
     
     # solve using jacobi
-    p = Jacobi(L, sigma, Np)
-    
+    p = Jacobi(L, sigma, 1e-10, verbose)
+
     return p - p.mean() # zero mean
 
 
-def Jacobi(A, b, Nint):
+def Jacobi(A, b, tol=1e-9, verbose=False):
     
     # storage arrays
     x = np.zeros_like(b)
@@ -69,16 +74,29 @@ def Jacobi(A, b, Nint):
     
     # inverse manually
     inv_ii = inv(A)
-    
+
+    # residuals for convergence
+    res0 = residuals(A, x, b)
+    res = res0; i=0
+
     # solve
-    for _ in range(Nint):
+    while res > res0*tol:
         
         for i in range(A.shape[0]):
             s = np.dot(A[i, :i], x[:i]) + np.dot(A[i, i+1:], x[i+1:])
             x_n[i] = (b[i] - s) * inv_ii[i]
         x = x_n
+
+        res = residuals(A, x, b); i+=1
     
+    if verbose:
+        print('Jacobi solver:')
+        print('\tres0: %.3e\n' % res0, '\tres: %.3e\n' % res, '\titer: %d' % i)
     return x
+
+
+def residuals(A, x, b):
+    return np.sqrt((len(b))**(-2)*np.einsum('i->', (np.abs(np.matmul(A, x) - b))**2))
 
 
 def inv(A):
@@ -98,3 +116,25 @@ def ddn(f, dx):
     dn[-1] = (f[0] - f[-2]) / dx
     
     return .5*dn #double dx
+
+
+def kernel(d, eps=2):
+    return np.where(abs(d)<=eps, 0.25*(1+np.cos(np.pi*d/eps)), 0)
+
+
+def draw_piston(plt, X, t=1, V=1):
+    plt.fill([X-t/2,X-t/2,X+t/2,X+t/2],[-2*V,2*V,2*V,-2*V],fill=False,hatch='///')
+    plt.quiver([X,X],[1.25*V,-1.25*V],[V,V],[0.,0.])
+
+
+def draw_results(x, xs, X, u0, u, p, sigma, V=1, fname='None'):
+    plt.plot(x, u0, '-.k', lw=1, label=r"$u^n$")
+    plt.plot(xs, sigma, '-.', lw=1, label=r"div($u^n$)")
+    plt.plot(xs, p, '--ok',  lw=1, label=r"$p^n$")
+    plt.plot(x, u, '-m', lw=1, label=r"$u^{n+1}$")
+    draw_piston(plt, X, 0.015, 1)
+    plt.xlim(-1,1); plt.ylim(-2,2)
+    plt.xlabel(r'$x/L$')
+    plt.legend()
+    if fname!='None':
+        plt.savefig(fname, dpi=900)
