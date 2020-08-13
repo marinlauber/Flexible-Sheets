@@ -55,18 +55,18 @@ def build_pressure_mat(beta, sigma, dx, show=False):
     return L
 
 
-def solve_pressure(beta, sigma, dx=1, verbose=False):
+def solve_pressure(beta, sigma, dx=1, tol=1e-10, Nsteps=0, verbose=False):
 
     # build pressure mat
     L = build_pressure_mat(beta, sigma, dx)
     
     # solve using jacobi
-    p = Jacobi(L, sigma, 1e-10, verbose)
+    p = Jacobi(L, sigma, tol, Nsteps, verbose)
 
     return p - p.mean() # zero mean
 
 
-def Jacobi(A, b, tol=1e-9, verbose=False):
+def Jacobi(A, b, tol, Nsteps, verbose):
     
     # storage arrays
     x = np.zeros_like(b)
@@ -77,21 +77,22 @@ def Jacobi(A, b, tol=1e-9, verbose=False):
 
     # residuals for convergence
     res0 = residuals(A, x, b)
-    res = res0; i=0
-
+    res = res0; k=0; step=True
+    r = res0*tol
     # solve
-    while res > res0*tol:
+    while((res>r) & step):
         
         for i in range(A.shape[0]):
             s = np.dot(A[i, :i], x[:i]) + np.dot(A[i, i+1:], x[i+1:])
             x_n[i] = (b[i] - s) * inv_ii[i]
         x = x_n
 
-        res = residuals(A, x, b); i+=1
-    
+        res = residuals(A, x, b); k+=1
+        if((k>=Nsteps) & (Nsteps!=0)): step=False
+
     if verbose:
         print('Jacobi solver:')
-        print('\tres0: %.3e\n' % res0, '\tres: %.3e\n' % res, '\titer: %d' % i)
+        print('\tres0: %.3e\n' % res0, '\tres: %.3e\n' % res, '\titer: %d' % k)
     return x
 
 
