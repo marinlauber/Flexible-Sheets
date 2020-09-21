@@ -124,8 +124,8 @@ def kernel(d, eps=2):
 
 
 def draw_piston(plt, X, t=1, V=1):
-    plt.fill([X-t/2,X-t/2,X+t/2,X+t/2],[-2*V,2*V,2*V,-2*V],fill=False,hatch='///')
-    plt.quiver([X,X],[1.25*V,-1.25*V],[V,V],[0.,0.])
+    plt.fill([X-t/2,X-t/2,X+t/2,X+t/2],[-2,2,2,-2],fill=False,hatch='///')
+    plt.quiver([X,X],[1.25,-1.25],[V,V],[0.,0.])
 
 
 def draw_results(x, xs, X, u0, u, p, sigma, V=1, fname='None'):
