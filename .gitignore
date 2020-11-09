@@ -34,3 +34,7 @@
 # ignore those folders
 1D-Piston/.ipynb_checkpoints
 1D-Piston/__pycache__
+1D-Piston/Gridless-Methods.ipynb
+1D-Piston/Particles-Method.ipynb
+1D-Piston/Boundary-Data-Immersion-Method-Copy1.ipynb
+1D-Piston/vid.mp4
